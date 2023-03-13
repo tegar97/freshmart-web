@@ -4,8 +4,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 This website is used to participate in the polardb hackthon
 
-<img src="./showcase/web.png"  width="300" height="300"/>
-<img src="./showcase/mobile.png"  width="300" height="300"/>
+<!-- <img src="./showcase/web.png"  width="300" height="300"/>
+<img src="./showcase/mobile.png"  width="300" height="300"/> -->
 
 ## Description 
 
@@ -32,9 +32,9 @@ This feature allows users to search for food items based on their name or desire
 ### Zofea
 
 This feature allows users to choose the shipping zone for their goods. Users can select the nearest shipping zone to their location, so that the goods shipped can be more guaranteed, efficient, and maintain their quality. By determining your location, Freshmart will determine what food ingredients are available in your area based on the nearest warehouse location in your city!
-
+<!-- 
 <img src="./showcase/zofea1.png" width="300" height="300"/>
-<img src="./showcase/zofea2.png" width="300" height="300"/>
+<img src="./showcase/zofea2.png" width="300" height="300"/> -->
 
 
 
