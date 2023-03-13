@@ -48,9 +48,12 @@ function Auth() {
               </span>
             </div>
             <div className="grid grid-cols-2 gap-5 mb-5">
-              <button className="bg-white text-primary-green   border-2 border-primary-green font-bold py-2 px-4 rounded">
+                            <Link href={"/register"} className="w-full">
+
+              <button className="bg-white w-full text-primary-green   border-2 border-primary-green font-bold py-2 px-4 rounded">
                 Register
-              </button>
+                </button>
+                </Link>
               <Link href={"/login"}>
                 <button className="bg-primary-green text-white  font-bold py-2 px-4 rounded mr-4 w-full">
                   Login

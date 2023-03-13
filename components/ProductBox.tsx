@@ -6,9 +6,13 @@ import React from "react";
 import CategoryList from "./CategoryList";
 import ProductCard from "./ProductCard";
 
-function ProductBox({ productGroup }: { productGroup: ProductGroup }) {
-  
- 
+function ProductBox({
+  productGroup,
+  handleAddCart,
+}: {
+  productGroup: ProductGroup;
+  handleAddCart? : (id: number, quantity: number) => void;
+}) {
   return (
     <div className="bg-white mt-2 px-4 sm:px-4 lg:px-4 lg:py-4">
       <div className="flex justify-between items-center ">
@@ -24,7 +28,10 @@ function ProductBox({ productGroup }: { productGroup: ProductGroup }) {
         </Link>
       </div>
       <div className="mt-6">
-        <ProductCard products={productGroup.products} />
+        <ProductCard
+          products={productGroup.products}
+          handleAddCart={handleAddCart}
+        />
       </div>
     </div>
   );

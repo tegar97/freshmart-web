@@ -26,6 +26,12 @@ export default function Document() {
           strategy="beforeInteractive"
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_MAPS_KEY}&libraries=places`}
         />
+        <Script
+          type="text/javascript"
+          src="https://app.sandbox.midtrans.com/snap/snap.js"
+          data-client-key="SB-Mid-client-T3ImlbSkLF-siDPZ"
+        />
+       
         <NextScript />
       </body>
     </Html>

@@ -33,10 +33,10 @@ function SearchAddressLocationForm({
     <div className="flex flex-col gap-5 ">
       <div className="flex flex-col  gap-1">
         <h1 className="text-xl font-semibold  text-grey-text    ">
-          Di mana lokasi tujuan pengirimanmu?
+          Hey, where should we send your goodies ?
         </h1>
         <span className="text-sm text-subtitle-text">
-          Cari alamat tujuan pengirimanmu dengan memasukkan nama jalan.
+          Let{"'"} s get started by adding your destination city.
         </span>
       </div>
       <hr></hr>
@@ -50,7 +50,7 @@ function SearchAddressLocationForm({
           <div>
             <FloatingLabelInput
               label=""
-              placeholder="Tulis nama gedung atau jalan"
+              placeholder="Type in your city or street here "
               type="text"
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
@@ -98,7 +98,7 @@ function SearchAddressLocationForm({
           }
         }}
       >
-        Gunakan Lokasi Sekarang
+        Want to make it easy? Let us use your current location!
       </button>
 
       {/* <button

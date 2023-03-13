@@ -7,12 +7,23 @@ import { Product, ProductGroup } from "@/types/ProductGroup";
 import ProductGrid from "./ProductGrid";
 
 const apiUrl = (cityName: string,category_id : number) => {
-  return `http://freshmarket.test/api/v1/products?city_name=${cityName}${category_id ? `&category_id=${category_id}` : ''}`;
+  return `${
+    process.env.NEXT_PUBLIC_API_BACKEND}/products?city_name=${cityName}${
+    category_id ? `&category_id=${category_id}` : ""
+  }`;
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const ProductCategory = ({ city ,category_id} : {city: string , category_id : number}) => {
+const ProductCategory = ({
+  city,
+  category_id,
+  handleAddCart,
+}: {
+  city: string;
+  category_id: number;
+  handleAddCart?: (id: number, quantity: number) => void;
+}) => {
   console.log("kota" + city);
 
   const { data, error } = useSWR(apiUrl(city, category_id), fetcher);
@@ -29,7 +40,11 @@ const ProductCategory = ({ city ,category_id} : {city: string , category_id : nu
       <div className="grid grid-cols-4 gap-10 ">
         {data.status != 404
           ? data.data.map((products: Product[], index: any) => (
-              <ProductGrid key={index} product={products} />
+              <ProductGrid
+                handleAddCart={handleAddCart}
+                key={index}
+                product={products}
+              />
             ))
           : "Tidak ada product yang tersedia diwilaya nada"}
       </div>

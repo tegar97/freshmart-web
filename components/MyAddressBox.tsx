@@ -1,19 +1,39 @@
 import React from 'react'
 import Addressbox from './Addressbox';
 
-function MyAddressBox({ setNextStep,loading, MyAddress }: { setNextStep: () => void , loading : any,  MyAddress: any}) {
-  
+function MyAddressBox({
+  setNextStep,
+  loading,
+  MyAddress,
+  setModalIsClose,
+}: {
+  setNextStep: () => void;
+  loading: any;
+    MyAddress: any;
+    setRefetch: any;
+    setModalIsClose: any;
+}) {
+  const [primaryAddress, setPrimaryAddress] = React.useState<any>(null);
+  // if don't adddress 
+
   return (
     <div className="flex flex-col gap-5 ">
       <div className="flex flex-col  gap-1">
         <h1 className="text-xl font-semibold  text-grey-text    ">
-          Mau kirim belanjaan kemana?
+          Where should we send your goodies ?
         </h1>
         <span className="text-sm text-subtitle-text">
-          Biar pengalaman belanjamu lebih baik, pilih alamat dulu.
+          Get ready to shop! Choose a delivery address first
         </span>
       </div>
       <hr></hr>
+      {MyAddress.length === 0 && (
+        <div className="flex flex-col items-center justify-center">
+          <span>
+            Looks like you haven{"'"} t saved any address yet. Let{"'"} s add one now!
+          </span>
+        </div>
+      )}
       {loading ? (
         <div className="animate-pulse flex flex-col gap-2 items-center justify-center">
           <div className="w-full h-4 bg-gray-200 rounded"></div>
@@ -26,10 +46,12 @@ function MyAddressBox({ setNextStep,loading, MyAddress }: { setNextStep: () => v
           return (
             <Addressbox
               active={item.isMainAddress ? true : false}
+              id={item.id}
               key={item.id}
               label={item.label}
               address={item.fullAddress}
               phone={item.phoneNumber}
+              setModalIsClose={setModalIsClose}
             />
           );
         })
@@ -40,7 +62,7 @@ function MyAddressBox({ setNextStep,loading, MyAddress }: { setNextStep: () => v
           onClick={setNextStep}
         >
           <span className="text-primary-green font-semibold">
-            Tambah Alamat Baru
+            Add New Address
           </span>
         </button>
       </div>

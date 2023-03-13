@@ -45,6 +45,10 @@ line-height: 21px;
 
 color: #4A4A4A;
 }
+
+.toRubik {
+  font-family: 'Rubik';
+}
 .header2{
   font-family: 'Open Sans';
 font-style: normal;
@@ -74,7 +78,6 @@ color: #4A4A4A;
   position: fixed;
   top: 20%; /* Atur vertikal posisi elemen */
   transform: translate(0%,0%);
-  background-color: white;
   
   right: 14%; /* Atur posisi relatif elemen */
   width: 15%; /* Atur lebar elemen */

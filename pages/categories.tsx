@@ -10,6 +10,7 @@ import ProductCategory from "@/components/ProductCategory";
 import Router from "next/router";
 import { cartContext } from "@/context/CartContext";
 import Sidebar from "@/components/Sidebar";
+import useCart from "@/hooks/useCart";
 
 interface UserAddress {
   city: string;
@@ -19,10 +20,11 @@ interface UserAddress {
 }
 
 const Categories: React.FC = () => {
+    const { cart, trigger, handleAddCart } = useCart();
+
     const [city, setCity] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState(0);
    const [showCart, setShowCart] = useState(false);
-   const { cart, setCart, setCheckTriggerCart, checkTriggerCart } = useContext(cartContext);
     const router = useRouter();
     const { category_id } = router.query;
     useEffect(() => {
@@ -38,27 +40,16 @@ const Categories: React.FC = () => {
 
       const cartData = localStorage.getItem("cart");
       const cart = cartData ? JSON.parse(cartData) : [];
-      setCart(cart);
-      if (checkTriggerCart == true) {
-        setShowCart(true);
-      }
-    }, [city, category_id, setCart, checkTriggerCart]);
+    
+    }, [city, category_id]);
 
-  function setCartShow() {
-    if (showCart == true) {
-      setShowCart(false);
-      setCheckTriggerCart(false);
-    } else {
-      setShowCart(true);
-      setCheckTriggerCart(true);
-    }
-  }
+  
 
 
   return (
     <div className="py-16  ">
       <Navbar type={"type1"} />
-      <Sidebar cart={cart} setCartShow={setCartShow} showCart={showCart} />
+      <Sidebar cart={cart} />
 
       <div className="bg-white mt-2 px-4 sm:px-4 lg:px-4 lg:py-4 ">
         <h1 className="header1">Categories</h1>
@@ -72,7 +63,9 @@ const Categories: React.FC = () => {
         </div>
       </div>
       <div className="bg-white mt-2 px-4 sm:px-4 lg:px-4 lg:py-4 min-h-screen ">
-        {city && <ProductCategory city={city} category_id={categoryId} />}
+        {city && (
+          <ProductCategory city={city} category_id={categoryId} handleAddCart={handleAddCart} />
+        )}
       </div>
       <Footer />
     </div>

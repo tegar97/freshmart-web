@@ -9,7 +9,7 @@ import Link from "next/link";
 
 
 
-const apiUrl = `http://freshmarket.test/api/v1/category`;
+const apiUrl = process.env.NEXT_PUBLIC_API_BACKEND + "/category";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

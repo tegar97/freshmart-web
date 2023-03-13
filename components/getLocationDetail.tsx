@@ -109,31 +109,71 @@ const MapsPopup = ({
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address: address }, (results, status) => {
       if (status === "OK") {
-        const UserAddressData = {
-          city: results[0].address_components[4].long_name,
-          address: results[0].formatted_address,
-          lat: markerPosition.lat,
-          lng: markerPosition.lng,
-        };
+        if (results && results.length > 0) {
+          let city = "";
+          let postalCode = "";
+          let province = "";
+          let street = "";
+          let district = "";
+          let formattedAddress = "";
 
-        setCity(results[0].address_components[4].long_name);
-        setPostalCode(results[0].address_components[6].long_name);
-        setProvince(results[0].address_components[5].long_name);
-        setStreet(results[0].address_components[1].long_name);
-        setAddressParent(results[0].formatted_address);
-        setDistrict(results[0].address_components[3].long_name);
-        setNextStep();
+          // Get address components dynamically based on their types
+          results[0].address_components.forEach((component) => {
+            if (component.types.includes("administrative_area_level_2")) {
+              city = component.long_name;
+            } else if (component.types.includes("postal_code")) {
+              postalCode = component.long_name;
+            } else if (
+              component.types.includes("administrative_area_level_1")
+            ) {
+              province = component.long_name;
+            } else if (component.types.includes("route")) {
+              street = component.long_name;
+            } else if (
+              component.types.includes("administrative_area_level_3") ||
+              component.types.includes("administrative_area_level_4")
+            ) {
+              district = component.long_name;
+            }
+          });
+
+          formattedAddress = results[0].formatted_address;
+
+
+          const userAddressData = {
+            city,
+            postalCode,
+            province,
+            street,
+            district,
+            lat: markerPosition.lat,
+            lng: markerPosition.lng,
+          };
+          console.log("x: ", userAddressData);
+
+          console.log("hit nextstep");
+          setCity(city);
+          setPostalCode(postalCode);
+          setProvince(province);
+          setStreet(street);
+          setAddressParent(formattedAddress);
+          setDistrict(district);
+          setNextStep();
+        } else {
+          console.log("No results found");
+        }
       } else {
         console.log("Geocoder failed due to: " + status);
       }
     });
   };
 
+
   return isLoaded ? (
     <div className="flex flex-col gap-5  relative   ">
       <div className="flex flex-col  gap-1">
         <h1 className="text-xl font-semibold  text-grey-text    ">
-          Tentukan titik pinpoint lokasi kamu
+          Let{"'"}s pinpoint your location
         </h1>
       </div>
       <div className="relative shadow-sm ">
@@ -166,15 +206,13 @@ const MapsPopup = ({
           isTextArea={true}
           onChange={(e) => setAddress(e.target.value)}
         /> */}
-        <Link href="/">
-          <button
-            onClick={handleNextStep}
-            className="bg-primary-green w-full  text-white py-4 rounded-lg font-medium  "
-          >
-            {" "}
-            Pilih lokasi dan lanjut isi alamat
-          </button>
-        </Link>
+        <button
+          onClick={handleNextStep}
+          className="bg-primary-green w-full  text-white py-4 rounded-lg font-medium  "
+        >
+          {" "}
+          Let{"'"}s pick your spot and fill additional details
+        </button>
       </div>
       {/* //floating button  */}
     </div>

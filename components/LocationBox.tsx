@@ -20,12 +20,12 @@ function LocationBox({ confirmedAddress, currentAddress } : { confirmedAddress: 
   return (
     <div className="bg-white mt-2 px-4 sm:px-4 lg:px-4 lg:py-4">
       <div className="flex justify-between ">
-        <h1 className="header1 text-lg">Lokasi pengiriman </h1>
+        <h1 className="header1 text-lg">Delivery Location</h1>
         {isLogin ? (
-          <ListAddress />
+          <ListAddress type="type1">Change</ListAddress>
         ) : (
           <Link href="/location-addresses">
-            <span className="ml-2 text-primary-green">Ubah</span>
+            <span className="ml-2 text-primary-green">Change</span>
           </Link>
         )}
       </div>

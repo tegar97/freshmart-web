@@ -6,6 +6,8 @@ import { Product } from "@/types/ProductGroup";
 import { cartContext } from "@/context/CartContext";
 import formatRupiah from "@/hooks/RupiahFormater";
 import QuantityModal from "./QuantityModal";
+import Link from "next/link";
+import convertToSlug from "@/helper/slug";
 
 interface productCart {
   id: number;
@@ -17,13 +19,19 @@ interface productCart {
   discount_percentage: number;
   discount_id : number
 }
-function ProductGrid({ product }: { product: productCart }) {
+function ProductGrid({
+  product,
+  handleAddCart,
+}: {
+  product: productCart;
+  handleAddCart?: (id: number, quantity: number) => void;
+}) {
   const { cart, setCheckTriggerCart, setCart } = useContext(cartContext);
 
   const [quantity, setQuantity] = useState(1);
   const handleAddToCart = async (product: productCart) => {
     // Mengambil keranjang dari local storage
-    
+
     const cart = JSON.parse(localStorage.getItem("cart"));
 
     // Mengecek apakah produk sudah ada di keranjang
@@ -40,7 +48,7 @@ function ProductGrid({ product }: { product: productCart }) {
         id: product.id,
         name: product.name,
         price: product.price,
-        image : product.image,
+        image: product.image,
         quantity,
       };
       cart.push(newProduct);
@@ -62,44 +70,48 @@ function ProductGrid({ product }: { product: productCart }) {
   };
   return (
     <div className="flex flex-col  h-64	 justify-between  ">
-      <div>
-        <div className="bg-gray-100  rounded-lg w-full h-28 py-8  flex items-center justify-center">
-          <Image
-            src={
-              process.env.NEXT_PUBLIC_IMAGE_BACKEND + "/images/" + product.image
-            }
-            width={80}
-            height={80}
-            className="object-cover h-full "
-            alt={"Image " + product.name}
-          />
-        </div>
+        <Link href={`/product/${convertToSlug(product.name)}`}>
+        <div>
+          <div className="bg-gray-100  rounded-lg w-full h-28 py-8  flex items-center justify-center">
+            <Image
+              src={
+                process.env.NEXT_PUBLIC_IMAGE_BACKEND +
+                "/images/" +
+                product.image
+              }
+              width={80}
+              height={80}
+              className="object-cover h-full "
+              alt={"Image " + product.name}
+            />
+          </div>
 
-        <div className="flex flex-col mt-2">
-          <span className="   font-medium w-full ">
-            {product.name.length > 15
-              ? product.name.slice(0, 15) + "..."
-              : product.name}
-          </span>
-          <span className="text-primary-green font-semibold mt-1 line ">
-            {formatRupiah(product.now_price)}
-          </span>
-          {product.discount_id !== null && (
-            <div className="flex flex-row  mt-2 items-center">
-              <div className="px-4  bg-[#ffdbe2] rounded-md   ">
-                <span className="text-[#f94d63] text-xs">
-                  {product.discount_percentage}%
+          <div className="flex flex-col mt-2">
+            <span className="   font-medium w-full ">
+              {product.name.length > 15
+                ? product.name.slice(0, 15) + "..."
+                : product.name}
+            </span>
+            <span className="text-primary-green font-semibold mt-1 line ">
+              {formatRupiah(product.now_price)}
+            </span>
+            {product.discount_id !== null && (
+              <div className="flex flex-row  mt-2 items-center">
+                <div className="px-4  bg-[#ffdbe2] rounded-md   ">
+                  <span className="text-[#f94d63] text-xs">
+                    {product.discount_percentage}%
+                  </span>
+                </div>
+                <span className="text-[#6d7588] ml-2 text-sm line-through ">
+                  {formatRupiah(product.price)}
                 </span>
               </div>
-              <span className="text-[#6d7588] ml-2 text-sm line-through ">
-                {formatRupiah(product.price)}
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+    </Link>
+        <QuantityModal product={product} handleAddCart={handleAddCart} />
       </div>
-      <QuantityModal product={product} />
-    </div>
   );
 }
 

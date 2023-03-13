@@ -5,6 +5,12 @@ import Footer from "@/components/Footer";
 import Image from "next/image";
 import useCart from "@/hooks/useCart";
 import ProductGroupList from "@/components/ProductGroupList";
+import CartProduct from "@/components/CartProduct";
+import formatRupiah from "@/hooks/RupiahFormater";
+import Cookies from "js-cookie";
+import Link from "next/link";
+import LoadingButton from "@/components/LoadingButton";
+import ListAddress from "@/components/ListAddress";
 
 interface CartItem {
   name: string;
@@ -14,6 +20,8 @@ interface CartItem {
 }
 
 const Cart = () => {
+  const [MyAddress, setMyAddress] = useState([]);
+  console.log("MyAddress => ", MyAddress);
   // const [cart, setCart] = useState<CartItem[]>([]);
   const {
     cart,
@@ -22,20 +30,27 @@ const Cart = () => {
     handleAddToCart,
     handleMinusToCart,
     clearCart,
-    
+    handleAddCart,
+    handleUnselectItem,
+    handleSelectItem,
+    handleSelectAllItem,
+    handleUnselectAllItem,
   } = useCart();
+  const [loading, setLoading] = useState(false);
+  const token = Cookies.get("token");
 
   const [confirmedAddress, setConfirmedAddress] = useState<boolean>(false);
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [location, setLocation] = useState<GeolocationCoordinates | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
-interface UserAddress {
-  city: string;
-  address: string;
-  lat: number;
-  lng: number;
-}
+  const [checkLogin, setCheckLogin] = useState(false);
+  interface UserAddress {
+    city: string;
+    address: string;
+    lat: number;
+    lng: number;
+  }
   const getAddressFromLatLng = async (
     latitude: number,
     longitude: number
@@ -67,6 +82,8 @@ interface UserAddress {
   };
 
   useEffect(() => {
+    setLoading(true);
+
     const address = localStorage.getItem("user-address");
     const confirmAddress = localStorage.getItem("confirmed_address");
 
@@ -80,8 +97,6 @@ interface UserAddress {
         }
       );
     }
-
-   
 
     if (confirmAddress === "true") {
       setConfirmedAddress(true);
@@ -104,7 +119,40 @@ interface UserAddress {
 
     const cartData = localStorage.getItem("cart");
     const cart = cartData ? JSON.parse(cartData) : [];
-  }, [location, city]);
+
+    const fetchData = async () => {
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        await axios
+          .get(`${process.env.NEXT_PUBLIC_API_BACKEND}/address`)
+          .then((response) => {
+            setMyAddress(response.data.data);
+            setLoading(false);
+          });
+      }
+    };
+    if (!token) {
+      setCheckLogin(false);
+    }
+    if (token) {
+      setCheckLogin(true);
+
+      fetchData();
+    }
+    setLoading(false);
+  }, [location, city, token, getAddressFromLatLng]);
+
+  //handle redirect to login  then back to cart
+  const handleRedirect = () => {
+    localStorage.setItem("redirect", "/Cart");
+    window.location.href = "/auth";
+  };
+
+  const redirectToCheckout = async () => {
+
+    localStorage.setItem("redirect", "/checkout");
+  };
+
 
 
   return (
@@ -116,17 +164,27 @@ interface UserAddress {
 
         <div className="flex flex-row justify-between items-center mt-5">
           <div className="flex gap-2">
-            <input
-              id="default-checkbox"
-              type="checkbox"
-              value=""
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-primary-green dark:border-gray-600"
-            />
+            {
+              // if all product selected, then checked
+
+              <input
+                id="default-checkbox"
+                type="checkbox"
+                value=""
+                onChange={
+                  cart.every((cart) => cart.selected)
+                    ? handleUnselectAllItem
+                    : handleSelectAllItem
+                }
+                checked={cart.every((cart) => cart.selected)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-primary-green dark:border-gray-600"
+              />
+            }
             <label
               htmlFor="default-checkbox"
               className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
             >
-              Pilih semua
+              Select all
             </label>
           </div>
 
@@ -145,100 +203,66 @@ interface UserAddress {
 
         {cart.map((cart, index) => {
           return (
-            <div
+            <CartProduct
               key={index}
-              className="flex flex-row 
-        justify-between items-center mt-4 "
-            >
-              <div className="flex flex-row gap-4 items-center">
-                <input
-                  id="default-checkbox"
-                  type="checkbox"
-                  value=""
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-primary-green dark:border-gray-600"
-                />
-
-                <div>
-                  <div
-                    style={{
-                      borderRadius: "8px",
-                      width: "72px",
-                      height: "72px",
-                    }}
-                    className="bg-gray-100  rounded-lg flex items-center justify-center"
-                  >
-                    <Image
-                      src={
-                        process.env.NEXT_PUBLIC_IMAGE_BACKEND +
-                        "/images/" +
-                        cart.image
-                      }
-                      width={60}
-                      height={60}
-                      className="object-cover  "
-                      alt={"Image " + cart.name}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-left mb-1 text-[#696969]">
-                    {cart.name}
-                  </span>
-                  {
-                    <span className="text-sm text-left mb-1 text-[#696969]">
-                      {cart.quantity} x Rp. {cart.price}
-                    </span>
-                  }
-
-                  <span className="font-medium">
-                    Rp. {cart.price * cart.quantity}{" "}
-                  </span>
-                </div>
-              </div>
-
-              {/* // add and sub quantity */}
-
-              <div className="flex flex-row gap-4 items-center">
-                <button
-                  className="text-primary-green px-4 py-2 rounded-lg"
-                  onClick={() => handleDelete(index)}
-                >
-                  Hapus
-                </button>
-                <div className="flex flex-row gap-4 items-center">
-                  <button
-                    onClick={() => handleMinusToCart(index)}
-                    className="text-primary-green px-4 py-2 rounded-lg"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="text"
-                    value={cart.quantity}
-                    onChange={(e) => handleChange(e, index)}
-                    className="w-12 h-8 text-center border-2 border-primary-green rounded-lg"
-                  />
-                  <button
-                    onClick={() => handleAddToCart(index)}
-                    className="text-primary-green px-4 py-2 rounded-lg"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
+              cart={cart}
+              index={index}
+              handleUnselectItem={handleUnselectItem}
+              handleSelectItem={handleSelectItem}
+              handleAddToCart={handleAddToCart}
+              handleMinusToCart={handleMinusToCart}
+              handleDelete={handleDelete}
+              handleChange={handleChange}
+            />
           );
         })}
+        <div className="mt-10">
+          {/* // total */}
+          <div className="flex flex-row justify-between items-center">
+            <h1 className="text-md text-left mb-1 font-medium">Total</h1>
+            <h1 className="text-md font-semibold text-left mb-1 ">
+             
+              {formatRupiah(
+                cart
+                  .filter((cart) => cart.selected)
+                  .reduce((acc, cart) => {
+                    return acc + cart.price * cart.quantity;
+                  }, 0)
+              )}
+            </h1>
+          </div>
+        </div>
       </div>
       <div className="mt-5">
         {confirmedAddress && city ? (
-          <ProductGroupList city={city} />
+          <ProductGroupList city={city} handleAddCart={handleAddCart} />
         ) : (
           "loading"
         )}
       </div>
-
-      <Footer />
+      <div className="max-w-xl mx-auto z-20 fixed bottom-0 left-0 right-0  flex flex-row  gap-5 items-center  bg-white  px-4 sm:px-4 lg:px-4 lg:py-8      mt-2">
+        {checkLogin == false && !loading && (
+          <button
+            onClick={handleRedirect}
+            className="bg-primary-green text-white px-4 py-2 rounded-lg w-full"
+          >
+            Checkout
+          </button>
+        )}
+        {loading && <LoadingButton>Checkout</LoadingButton>}
+        {checkLogin && MyAddress.length > 0 && (
+          <Link href={'/checkout'} className="w-full">
+            <button className="bg-primary-green text-white px-4 py-2 rounded-lg w-full">
+              Checkout
+            </button>
+          </Link>
+        )}
+        {!loading && checkLogin && MyAddress.length == 0 && (
+          <div className="w-full" onClick={redirectToCheckout}>
+            <ListAddress type="type2">Checkout</ListAddress>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

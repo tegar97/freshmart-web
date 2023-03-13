@@ -19,7 +19,7 @@ const menuItems: MenuItem[] = [
   {
     icon: "/menu1-icon.svg",
     activeIcon: "/menu1-icon-active.svg",
-    label: "Beranda",
+    label: "Home",
     href: "/",
   },
   {

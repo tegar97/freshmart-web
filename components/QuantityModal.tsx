@@ -3,27 +3,44 @@ import { useEffect, useState } from "react";
 import { Product } from "@/types/ProductGroup";
 import useCart from "@/hooks/useCart";
 import Image from "next/image";
-function QuantityModal({ product ,variant=1}: { product: Product,variant : number }) {
-  const {
-    handleAddCart,
-    checkIfItemExistsInCart,
-    setCart,
-    cart,
-    setTrigger,
-    trigger,
-  } = useCart();
+import formatRupiah from "@/hooks/RupiahFormater";
+
+type QuantityModalProps = {
+  product: Product;
+  variant?: number;
+  handleAddCart?: (product: Product, id: number, quantity: number) => void;
+};
+
+export default function QuantityModal({
+  product,
+  variant = 1,
+  handleAddCart ,
+}: QuantityModalProps) {
+  const { checkIfItemExistsInCart, setCart, cart, setTrigger, trigger } =
+    useCart();
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
 
-  // handle add to cart with hooks handelAddCart
+  // handle add to cart with hooks handleAddCart
   const handleAddToCart = () => {
-      handleAddCart({ ...product, quantity: selectedQuantity ,price: product.now_price});
-      setModalIsOpen(false);
-      alert('Add to cart success')
+    if (product && product.now_price && selectedQuantity > 0) {
+      //fix Cannot invoke an object which is possibly 'undefined'.
+
+     
+
+      handleAddCart({
+        ...product,
+        quantity: selectedQuantity,
+        price: product.now_price,
+      });
+    }
+   
+    setModalIsOpen(false);
+    alert("Add to cart success");
   };
   function openModal() {
     const item = checkIfItemExistsInCart(product.id);
-    
+
     if (item) {
       console.log(item);
       setSelectedQuantity(item.quantity);
@@ -34,7 +51,6 @@ function QuantityModal({ product ,variant=1}: { product: Product,variant : numbe
   function closeModal() {
     setModalIsOpen(false);
   }
-
   //hande add quantity to hook handleAddCart
   // const handleAddQuantity = () => {
   //     handleAddCart({ ...product, quantity: selectedQuantity });
@@ -52,19 +68,27 @@ function QuantityModal({ product ,variant=1}: { product: Product,variant : numbe
         >
           <span className="text-white  text-sm font-medium ">Add to cart</span>
         </button>
-      ) : (
+      ) : variant == 2 ? (
         <button
           onClick={openModal}
           className="bg-primary-green text-white py-2 px-4 rounded-md w-full"
         >
           Tambahkan ke keranjang
         </button>
+      ) : (
+        <button
+          onClick={openModal}
+          style={{ borderWidth: "1px" }}
+          className="bg-white text-primary-green border-green-500  py-2  rounded-md w-full"
+        >
+          + Keranjang
+        </button>
       )}
 
       <ReactModal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
-        className="modal max-w-xl mx-auto   h-full overflow-y-auto  bg-white shadow-md absolute border-none "
+        className="modal max-w-xl mx-auto   h-full overflow-y-auto  bg-white shadow-md absolute border-none  outline-none"
         overlayClassName="overlay"
       >
         {/* <h1 className="mb-4 text-2xl font-bold">Choose Quantity</h1> */}
@@ -119,11 +143,14 @@ function QuantityModal({ product ,variant=1}: { product: Product,variant : numbe
                   </div>
                 ) : null}
                 <span className="font-medium text-lg  text-primary-green">
-                  Rp. {product.now_price * selectedQuantity}{" "}
+                  {formatRupiah(product.now_price * selectedQuantity)}{" "}
                 </span>
               </div>
               <div className="flex justify-center items-end">
-                <button className="rounded-full px-3 py-1 border-gray-300 border mr-2">
+                <button
+                  onClick={() => setSelectedQuantity(selectedQuantity - 1)}
+                  className="rounded-full px-3 py-1 border-gray-300 border mr-2"
+                >
                   -
                 </button>
                 <input
@@ -144,7 +171,7 @@ function QuantityModal({ product ,variant=1}: { product: Product,variant : numbe
               onClick={handleAddToCart}
               className="mt-4 px-4 py-2 rounded-md bg-primary-green text-white hover:bg-green-600"
             >
-              Set Quantity
+           Add to cart
             </button>
           </div>
         </div>
@@ -153,4 +180,3 @@ function QuantityModal({ product ,variant=1}: { product: Product,variant : numbe
   );
 }
 
-export default QuantityModal;

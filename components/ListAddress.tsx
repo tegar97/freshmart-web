@@ -10,7 +10,7 @@ import MapsPopup from "./getLocationDetail";
 import AdditionAddressBoxForm from "./AdditionAddressBoxForm";
 import axios from "axios";
 import Cookies from "js-cookie";
-function ListAddress({}) {
+function ListAddress({children,type='type1'} : {children : any, type : string}) {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [currentPosition, setCurrentPosition] = useState();
   const [city, setCity] = useState("");
@@ -22,6 +22,7 @@ function ListAddress({}) {
   const [MyAddress, setMyAddress] = useState([]);
   const [loading, setLoading] = useState(false);
   const token = Cookies.get("token");
+  const [refetch, setRefetch] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -37,8 +38,10 @@ function ListAddress({}) {
           setLoading(false);
         });
     };
+  
     fetchData();
-  }, [token]);
+    console.log('rerender?')
+  }, [token,modalIsOpen]);
 
   console.log(MyAddress);
 
@@ -72,12 +75,21 @@ function ListAddress({}) {
 
   return (
     <div>
-      <span
-        className="ml-2 text-primary-green cursor-pointer"
-        onClick={openModal}
-      >
-        Ubah
-      </span>
+      {type === "type1" ? (
+        <span
+          className="ml-2 text-primary-green cursor-pointer"
+          onClick={openModal}
+        >
+          {children}
+        </span>
+      ) : (
+        <button
+          onClick={openModal}
+          className="bg-primary-green text-white px-4 py-2 rounded-lg w-full"
+        >
+          {children}
+        </button>
+      )}
 
       <ReactModal
         isOpen={modalIsOpen}
@@ -92,6 +104,7 @@ function ListAddress({}) {
             setNextStep={nextStep}
             loading={loading}
             MyAddress={MyAddress}
+            setModalIsClose={setModalIsClose}
           />
         )}
         {step === 2 && (
@@ -112,6 +125,7 @@ function ListAddress({}) {
             setAddressParent={setAddress}
             setDistrict={setDistrict}
           />
+          // <button onClick={nextStep}>next step</button>
         )}
 
         {step === 4 && (
@@ -123,6 +137,7 @@ function ListAddress({}) {
             district={district}
             addressParent={address}
             currentPosition={currentPosition}
+            prevStep={prevStep}
           />
         )}
       </ReactModal>

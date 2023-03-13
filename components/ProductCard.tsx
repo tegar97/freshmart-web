@@ -17,9 +17,13 @@ interface productCart {
   price: number;
   quantity: number;
 }
-function ProductCard({ products }: { products: Product[] }) {
-  const { handleAddCart } = useCart();
-
+function ProductCard({
+  products,
+  handleAddCart,
+}: {
+  products: Product[];
+  handleAddCart? : (id: number, quantity: number) => void;
+}) {
   return (
     <div className="mx-auto max-w-screen-lg overflow-x-auto">
       <Swiper
@@ -40,7 +44,7 @@ function ProductCard({ products }: { products: Product[] }) {
       >
         {products.map((product: Product) => (
           <SwiperSlide key={product.id}>
-            <div className="flex flex-col  h-64	 justify-between  ">
+            <div className="flex flex-col  h-72	 justify-between  ">
               <Link href={`/product/${convertToSlug(product.name)}`}>
                 <div>
                   <div className="bg-gray-100  rounded-lg w-full h-28 py-8  flex items-center justify-center">
@@ -48,8 +52,8 @@ function ProductCard({ products }: { products: Product[] }) {
                       src={
                         process.env.NEXT_PUBLIC_IMAGE_BACKEND +
                         "/images/" +
-                        product.image
-                      }
+                        product.image_web
+                       }
                       width={80}
                       height={80}
                       className="object-cover h-full "
@@ -81,7 +85,7 @@ function ProductCard({ products }: { products: Product[] }) {
                   </div>
                 </div>
               </Link>
-              <QuantityModal product={product} />
+              <QuantityModal product={product} handleAddCart={handleAddCart} />
             </div>
           </SwiperSlide>
         ))}

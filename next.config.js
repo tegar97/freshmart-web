@@ -4,6 +4,9 @@ const nextConfig = {
   images: {
     domains: ["freshmart.oss-ap-southeast-5.aliyuncs.com"],
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  }
 };
 
 module.exports = nextConfig

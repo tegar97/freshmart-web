@@ -1,11 +1,17 @@
 import Navbar from "@/components/Navbar";
+import ProductCard from "@/components/ProductCard";
 import QuantityModal from "@/components/QuantityModal";
 import Sidebar from "@/components/Sidebar";
+import SkeletonLoading from "@/components/SketelonLoading";
+import convertToSlug from "@/helper/slug";
 import formatRupiah from "@/hooks/RupiahFormater";
+import useCart from "@/hooks/useCart";
+import axios from "axios";
+import Cookies from "js-cookie";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useSWR from "swr";
 
 const apiUrl = (slug: string) => {
@@ -15,30 +21,98 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function ProductDetail() {
     const [showFullDescription, setShowFullDescription] = useState(false);
-      const router = useRouter();
+  const router = useRouter();
+  const [recommendProduct, setRecommendProduct] = useState<any[]>([ ]); 
       const { slug } = router.query;
     const { data, error } = useSWR(apiUrl(slug), fetcher);
 
      const toggleDescription = () => {
        setShowFullDescription(!showFullDescription);
-    };
+  };
+  const { cart, handleAddCart } = useCart();
+
+
     
+  
+  // store to localstorae as history view product
+ useEffect(() => {
+   if (data) {
+     const history = localStorage.getItem("historyView");
+     const historyObject = history ? JSON.parse(history) : [];
+     if (!history) {
+        localStorage.setItem("historyView", JSON.stringify([]));
+     }
+       const historyData = {
+         id: data.data.id,
+         name: data.data.name,
+         image: data.data.image,
+         now_price: data.data.now_price,
+       };
+
+     const existingIndex = historyObject.findIndex(
+       (item) => item.id === historyData.id
+     );
+     if (existingIndex > -1) {
+       historyObject.splice(existingIndex, 1);
+     }
+     historyObject.unshift(historyData);
+
+     localStorage.setItem("historyView", JSON.stringify(historyObject));
+   }
+
+
+ }, [data]);
+  
+  useEffect(() => {
+
+
+    // check auth
+    const token = Cookies.get("token");
+    if (token) {
+      // get recommend product
+      const getRecommendProduct = async () => {
+        try {
+          const response = await axios.get<any>(
+            `${process.env.NEXT_PUBLIC_API_BACKEND}/myrecommendation`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setRecommendProduct(response.data.data);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      getRecommendProduct();
+    }
+
+  
+  }, [data]);
+
+  // end store to localstorage as history view product
+ 
+
+
 
      const description =
        "Buah melon kaya nutrisi, seperti kalium, asam folat, protein, vitamin C, betakaroten, dan magnesium yang baik untuk kesehatan secara menyeluruh hingga kecantikan. Buah melon juga dikenal memiliki kandungan air yang tinggi, sehingga dapat membantu menjaga hidrasi tubuh. Selain itu, buah melon juga memiliki kandungan antioksidan yang dapat membantu melindungi tubuh dari kerusakan sel dan radikal bebas.";
     if (!data) {
-        return <div>Loading...</div>;
+        return <SkeletonLoading/>
     }
     return (
       <div className="py-16 relative">
-        <Navbar type={"type2"} title={`${data.data.name}`} />
-        <Sidebar />
-        <div className="bg-gray-200   rounded-lg  w-full py-8  flex items-center justify-center">
+        <Navbar backUrl="/" type={"type2"} title={`${data.data.name}`} />
+        <Sidebar cart={cart} />
+        <div className="bg-gray-200       rounded-lg   w-full py-8  flex items-center justify-center">
           <Image
-            src={`https://freshmart.oss-ap-southeast-5.aliyuncs.com/images/images/20230221110135-images.png`}
+            src={`
+              ${process.env.NEXT_PUBLIC_IMAGE_BACKEND}/images/${data.data.image_web_big}
+            `}
             width={400}
             height={400}
-            className="object-cover "
+            className="object-cover  h-full "
             alt={"Image " + "Product Name"}
           />
         </div>
@@ -84,7 +158,7 @@ function ProductDetail() {
               </div>
               <div className="flex flex-col ml-5 ">
                 <span className="text-xs text-[#5c5c5c] ">
-                  Eksplor lebih banyak{" "}
+                  Explore our grocery categories
                 </span>
                 <Link href={`/categories?category_id=${data.data.category.id}`}>
                   <span className="text-sm font-medium text-primary-green">
@@ -143,6 +217,73 @@ function ProductDetail() {
             </button>
           </div>
         </div>
+        {/* end description here */}
+        {/* recommend  */}
+        {
+          recommendProduct && recommendProduct.length > 0 && 
+<div className="bg-white  px-4 sm:px-4 lg:px-4 lg:py-4      mt-2">
+          <div className="flex flex-col">
+            <h1 className="font-medium text-xl">
+              We recommend these products!
+            </h1>
+            <div className="flex flex-row mt-4 gap-5 w-full overflow-x-auto overflow-y-hidden flex-nowrap">
+              {recommendProduct.map((item, index) => {
+                return (
+                  <div
+                    className="flex flex-col h-72 min-w-[8rem] justify-between"
+                    key={index}
+                  >
+                    <Link href={`/product/${convertToSlug(item.name)}`}>
+                      <div>
+                        <div className="bg-gray-100   rounded-lg w-full h-28 py-8  flex items-center justify-center">
+                          <Image
+                            src={
+                              process.env.NEXT_PUBLIC_IMAGE_BACKEND +
+                              "/images/" +
+                              item.image_web
+                            }
+                            width={80}
+                            height={80}
+                            className="object-cover h-full "
+                            alt={"Image " + item.name}
+                          />
+                        </div>
+
+                        <div className="flex flex-col mt-2">
+                          <span className="   font-medium w-full ">
+                            {item.name.length > 20
+                              ? item.name.slice(0, 20) + "..."
+                              : item.name}
+                          </span>
+                          <span className="text-primary-green font-semibold mt-1 line ">
+                            {formatRupiah(item.now_price)}
+                          </span>
+                          {item.discount_id !== null && (
+                            <div className="flex flex-row  mt-2 items-center">
+                              <div className="px-3 bg-[#ffdbe2] rounded-md   ">
+                                <span className="text-[#f94d63] text-xs">
+                                  {item.discount_percentage}%
+                                </span>
+                              </div>
+                              <span className="text-[#6d7588] ml-2 text-sm line-through ">
+                                {formatRupiah(item.price)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                    <QuantityModal product={item} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        }
+        
+        {/* end recommend  */}
+
         {/* // floating button cart and share  */}
         <div className="max-w-xl mx-auto fixed bottom-0 left-0 right-0  flex flex-row  gap-5 items-center  bg-white  px-4 sm:px-4 lg:px-4 lg:py-4      mt-2">
           <div>
@@ -168,8 +309,13 @@ function ProductDetail() {
               </svg>
             </button>
           </div>
+
           <div className="w-full">
-                    <QuantityModal variant={2} product={data.data} />
+            <QuantityModal
+              variant={2}
+              product={data.data}
+              handleAddCart={handleAddCart}
+            />
           </div>
         </div>
       </div>

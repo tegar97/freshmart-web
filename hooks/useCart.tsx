@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 
 interface CartItem {
+  weight: number;
+  image: string;
   id: number;
   name: string;
   price: number;
   quantity: number;
+  selected : boolean;
 }
 
 function useCart() {
@@ -42,7 +45,9 @@ function useCart() {
 
 
     // user can decision quantity item when click button add to cart
+
     if (item.quantity === null) {
+   
       return;
     }
 
@@ -77,11 +82,7 @@ function useCart() {
     }
 
     // validation if quantity is more than 10
-    if (Number(item.quantity) > 10) {
-      alert("Maximum quantity is 10");
-      return;
-    }
-
+  
     // validation if item already in cart
     const itemInCart = cart.find((cartItem) => cartItem.id === item.id);
     if (itemInCart) {
@@ -100,10 +101,11 @@ function useCart() {
     newCart.push({
       ...item,
       quantity: Number(item.quantity),
+      selected : true,
     });
     setCart(newCart);
     localStorage.setItem("cart", JSON.stringify(newCart));
- 
+    setCartShow(true);
 
     return newCart;
   };
@@ -161,6 +163,39 @@ function useCart() {
     localStorage.setItem("cart", JSON.stringify(newCart2));
   };
 
+
+  //handle unselect item
+  const handleUnselectItem = (index: number) => {
+    const newCart = [...cart];
+    newCart[index].selected = false;
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
+
+  //handle select item
+  const handleSelectItem = (index: number, ) => {
+    const newCart = [...cart];
+    newCart[index].selected = true;
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
+
+  // select all item
+  const handleSelectAllItem = () => {
+    const newCart = [...cart];
+    newCart.map((item) => (item.selected = true));
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
+
+  // unselect all item
+
+  const handleUnselectAllItem = () => {
+    const newCart = [...cart];
+    newCart.map((item) => (item.selected = false));
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
   // create handle show cart
   const handleShowCart = () => {
     setCartShow(!cartShow);
@@ -192,6 +227,10 @@ function useCart() {
     trigger,
     setTrigger,
     clearCart,
+    handleUnselectItem,
+    handleSelectItem,
+    handleSelectAllItem,
+    handleUnselectAllItem,
   };
 }
 

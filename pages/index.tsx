@@ -21,6 +21,8 @@ import { cartContext } from "@/context/CartContext";
 import Sidebar from "@/components/Sidebar";
 import Head from "next/head";
 import useCart from "@/hooks/useCart";
+import Dropzone from "react-dropzone";
+import DropzoneArea from "@/components/DropZoneArea";
 
 interface UserAddress {
   city: string;
@@ -30,17 +32,19 @@ interface UserAddress {
 }
 
 const Home: React.FC = () => {
-
   const token = Cookies.get("token");
-    const pathname = usePathname();
-    console.log("Path" + pathname);
+  const pathname = usePathname();
+  console.log("Path" + pathname);
   const [user, setUser] = useState<any>(null);
   const [confirmedAddress, setConfirmedAddress] = useState<boolean>(false);
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [location, setLocation] = useState<GeolocationCoordinates | null>(null);
   const [city, setCity] = useState<string | null>(null);
-  const [showCart, setShowCart] = useState(false)
-  const { cart ,trigger} = useCart();
+  const [showCart, setShowCart] = useState(false);
+  const { cart, trigger, handleAddCart } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [isAvailable, setIsAvailable] = useState<boolean>(false);
+  const [loadCity, setLoadCity] = useState<boolean>(false);
 
   const getAddressFromLatLng = async (
     latitude: number,
@@ -51,16 +55,14 @@ const Home: React.FC = () => {
     );
     const data = await response.json();
 
-    const localityComponent = data.results[0].address_components.find((component :any) =>
-      component.types.includes("administrative_area_level_2")
+    const localityComponent = data.results[0].address_components.find(
+      (component: any) =>
+        component.types.includes("administrative_area_level_2")
     );
 
-    
-
-
-     let getCity;
+    let getCity;
     if (localityComponent) {
-       getCity = localityComponent.long_name;
+      getCity = localityComponent.long_name;
     } else {
       console.log("Tidak ditemukan kota.");
     }
@@ -74,62 +76,136 @@ const Home: React.FC = () => {
     return userAddressData;
   };
 
-     
+  // check if  bottom of page
+  useEffect(() => {
+    const bottom =
+      Math.ceil(window.innerHeight + window.scrollY) >=
+      document.documentElement.scrollHeight;
+    console.log(bottom);
+    const handleScroll = () => {
+      const bottom =
+        Math.ceil(window.innerHeight + window.scrollY) >=
+        document.documentElement.scrollHeight;
+      if (bottom) {
+        setShowCart(true);
+      } else {
+        setShowCart(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
- useEffect(() => {
-   const userStorage = localStorage.getItem("user");
-   const address = localStorage.getItem("user-address");
-   const confirmAddress = localStorage.getItem("confirmed_address");
+  useEffect(() => {
+    const userStorage = localStorage.getItem("user");
+    const address = localStorage.getItem("user-address");
+    const confirmAddress = localStorage.getItem("confirmed_address");
 
-   if (confirmAddress == null) {
-     navigator.geolocation.getCurrentPosition(
-       (position) => {
-         setLocation(position.coords);
-       },
-       (error) => {
-         console.log(error);
-       }
-     );
-   }
+    // const checkCity = async () => {
+    //   const response = await axios.get(
+    //     `${process.env.NEXT_PUBLIC_API_BACKEND}/checkCity?city_name=${city}`
+    //   );
+    //   console.log("response", response);
+    //   if (response.data.data == true) {
+    //     setIsAvailable(true);
+    //   }
 
-   if (userStorage) {
-     const userObject = JSON.parse(userStorage);
-     setUser(userObject);
-   }
+    //   if (response.data.data == false) {
+    //     setIsAvailable(false);
+    //   }
+    // };
+    if (!token) {
+      if (confirmAddress == null) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setLocation(position.coords);
+          },
+          (error) => {
+            return setLocation({
+              latitude: -6.1753924,
+              longitude: 106.8249641,
+            });
+          }
+        );
+      }
 
-   if (confirmAddress === "true") {
-     setConfirmedAddress(true);
-     if (address) {
-       const addressObject = JSON.parse(address);
-       setCurrentAddress(addressObject.address);
-       setCity(addressObject.city);
-     }
-   } else if (location) {
-     getAddressFromLatLng(location.latitude, location.longitude).then(
-       (address) => {
-         console.log(address);
-         setCurrentAddress(address.address);
-         setCity(address.city);
-         localStorage.setItem("user-address", JSON.stringify(address));
-         localStorage.setItem("confirmed_address", "true");
-       }
-     );
-   }
+      if (userStorage) {
+        const userObject = JSON.parse(userStorage);
+        setUser(userObject);
+      }
 
-   console.log('trigger ', trigger);
-   console.log('redner ulang data cart pada index.tsx = ' ,cart )
+      if (confirmAddress === "true") {
+        setConfirmedAddress(true);
+        if (address) {
+          const addressObject = JSON.parse(address);
+          setCurrentAddress(addressObject.address);
+          setCity(addressObject.city);
+        }
+      } else if (location) {
+        getAddressFromLatLng(location.latitude, location.longitude).then(
+          (address) => {
+            console.log(address);
+            setCurrentAddress(address.address);
+            setCity(address.city);
+            localStorage.setItem("user-address", JSON.stringify(address));
+            localStorage.setItem("confirmed_address", "true");
+          }
+        );
+      }
 
    
+    }
 
+    console.log("trigger ", trigger);
+    console.log("redner ulang data cart pada index.tsx = ", cart);
+  }, [location, city, cart, trigger, token]);
 
- }, [location, city,cart,trigger]);
-  
-  
-  
-  
+  //check if user login or not and get user primary address if user login and confirmed address is true then get city from address and get product by city name from api and show it on page if user not login then get product by city name from api and show it on page if user not confirmed address then get user current location and get city from location and get product by city name from api and show it on page if user confirmed address then get city from address and get product by city name from api and show it on page if user not confirmed address then get user current location and get city from location and get product by city name from api and show it on page
 
+  useEffect(() => {
+    if (token) {
+      setLoading(true);
+      const fetchData = async () => {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        await axios
+          .get(`${process.env.NEXT_PUBLIC_API_BACKEND}/mainAddress`)
+          .then((response) => {
+            if (response.data.data != null) {
+              console.log("myaddress primary", response.data.data);
+              setCurrentAddress(response.data.data.fullAddress);
+              setCity(response.data.data.city);
+              setConfirmedAddress(true);
+              const data = {
+                city: response.data.data.city,
+                address: response.data.data.fullAddress,
+                lat: response.data.data.latitude,
+                lng: response.data.data.longitude,
+              };
+              localStorage.setItem("user-address", JSON.stringify(data));
+              localStorage.setItem("confirmed_address", "true");
+              setLoading(false);
+            } else {
+              const address = localStorage.getItem("user-address");
 
-  
+              setConfirmedAddress(true);
+              if (address) {
+                const addressObject = JSON.parse(address);
+                setCurrentAddress(addressObject.address);
+                setCity(addressObject.city);
+              }
+            }
+          });
+      };
+
+      fetchData();
+
+      setLoading(false);
+    }
+  }, [token, city]);
+
+  // request check city
+
+  console.log("city", city);
 
   return (
     <div className="py-16 ">
@@ -137,16 +213,23 @@ const Home: React.FC = () => {
         <title>Freshmarket</title>
       </Head>
       <Navbar type={"type1"} />
-    
-      <Sidebar cart={cart}  showCart={showCart} />
+      <Sidebar cart={cart} showCart={showCart} />
       <LocationBox
         confirmedAddress={confirmedAddress}
         currentAddress={currentAddress}
       />
-      <BannerBox />
-      <CategoryBox />
-      {confirmedAddress && city ? <ProductGroupList city={city} /> : "loading"}
-      <Footer />
+
+     
+          <BannerBox />
+          <CategoryBox />
+          {confirmedAddress && city ? (
+            <ProductGroupList city={city} handleAddCart={handleAddCart} />
+          ) : (
+            "loading"
+          )}
+          <Footer />
+            
+
     </div>
   );
 };

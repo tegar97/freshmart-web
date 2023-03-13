@@ -12,6 +12,7 @@ import { cartContext } from "@/context/CartContext";
 import Sidebar from "@/components/Sidebar";
 import useSWR from "swr";
 import ProductGrid from "@/components/ProductGrid";
+import useCart from "@/hooks/useCart";
 
 interface UserAddress {
   city: string;
@@ -29,12 +30,11 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const ProductGroup: React.FC = () => {
   const [city, setCity] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const { cart, setCart, setCheckTriggerCart, checkTriggerCart } =
-    useContext(cartContext);
+
   const router = useRouter();
   const { slug } = router.query;
     const { data, error } = useSWR(apiUrl(city, slug), fetcher);
-
+  const  {cart, handleAddCart} = useCart()
   useEffect(() => {
     const address = localStorage.getItem("user-address");
     if (address) {
@@ -45,25 +45,12 @@ const ProductGroup: React.FC = () => {
 
     const cartData = localStorage.getItem("cart");
     const cart = cartData ? JSON.parse(cartData) : [];
-    setCart(cart);
-    if (checkTriggerCart == true) {
-      setShowCart(true);
-    }
-  }, [city, slug, setCart, checkTriggerCart]);
+   
+  }, [city, slug]);
 
-  function setCartShow() {
-    if (showCart == true) {
-      setShowCart(false);
-      setCheckTriggerCart(false);
-    } else {
-      setShowCart(true);
-      setCheckTriggerCart(true);
-    }
-  }
-
+  
 
     
-    console.log(data)
 
      if (error) {
        return <div>Error: {error.message}</div>;
@@ -74,18 +61,20 @@ const ProductGroup: React.FC = () => {
 
   return (
     <div className="py-16 ">
-      <Navbar type={"type1"}  />
-      <Sidebar cart={cart} setCartShow={setCartShow} showCart={showCart} />
+      <Navbar type={"type1"} />
+      <Sidebar cart={cart}  showCart={showCart} />
       <div className="bg-white mt-2 px-4 sm:px-4 lg:px-4 lg:py-4 ">
-              <h1 className="header1">{ data.status != 404 && data.data.title}</h1>
-
-       
+        <h1 className="header1">{data.status != 404 && data.data.title}</h1>
       </div>
       <div className="bg-white mt-2 px-4 sm:px-4 lg:px-4 lg:py-4 ">
         <div className="grid grid-cols-4 gap-10 ">
           {data.status != 404
             ? data.data.products.map((products: Product[], index: any) => (
-                <ProductGrid key={index} product={products} />
+                <ProductGrid
+                  key={index}
+                  product={products}
+                  handleAddCart={handleAddCart}
+                />
               ))
             : "Tidak ada product yang tersedia diwilaya nada"}
         </div>

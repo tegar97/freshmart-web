@@ -1,17 +1,61 @@
-import React from 'react'
+import { userContext } from '@/context/UserContext';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import React, { useContext } from 'react'
+import Router from "next/router";
 
 function Addressbox({
   active = false,
+  id,
   label,
   address,
   phone,
+  setModalIsClose,
 }: {
   active?: boolean;
+  id: string;
   label: string;
   address: string;
   phone: string;
-}) {
-    
+  setModalIsClose: any;
+  }) {
+    const token = Cookies.get("token");
+    const {  isChangeAddress, setIsChangeAddress }  = useContext(userContext);
+
+  const changePrimaryAddress = () => {
+    //change primary address
+
+    const response = axios.post(
+      `${process.env.NEXT_PUBLIC_API_BACKEND}/ChangeMainAddress`,
+      {
+        newAddress: id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    response.then((res) => {
+         
+       const UserAddressData = {
+         city: res.data.data.city,
+         address: res.data.data.fullAddress,
+         lat: res.data.data.latitude,
+         lng: res.data.data.longitude,
+       };
+              localStorage.setItem(
+                "user-address",
+                JSON.stringify(UserAddressData)
+              );
+      localStorage.setItem("confirmed_address", "true");
+   Router.reload();
+    });
+
+    console.log(isChangeAddress);
+    //replace myAddress with new primary address
+  };
 
   return (
     <div
@@ -37,7 +81,10 @@ function Addressbox({
             {address}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div
+          className="
+        flex flex-col"
+        >
           {active ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -55,7 +102,10 @@ function Addressbox({
               <path d="M5 12l5 5l10 -10"></path>
             </svg>
           ) : (
-            <button className="bg-primary-green text-white py-2 px-4 rounded-md w-full">
+            <button
+              onClick={changePrimaryAddress}
+              className="bg-primary-green text-white py-2 px-4 rounded-md w-full"
+            >
               Pilih
             </button>
           )}

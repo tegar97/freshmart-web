@@ -74,7 +74,14 @@ function Login() {
         );
 
         //redirect to dashboard
-        Router.push("/dashboard");
+        // check redirect in localstorage
+        const redirect = localStorage.getItem("redirect");
+        if (redirect) {
+          localStorage.removeItem("redirect");
+          Router.push(redirect);
+        } else {
+          Router.push("/");
+        }
       })
       .catch((error) => {
         console.log(error.response.data);
@@ -83,6 +90,9 @@ function Login() {
       });
     
     console.log(validation.message);
+
+   
+    
 
   };
 

@@ -18,12 +18,14 @@ import { userTypes } from "@/types/User";
 import Navbar from "@/components/Navbar";
 import FloatingLabelInput from "@/components/FloatingLabelInput";
 import Link from "next/link";
+import LoadingButton from "@/components/LoadingButton";
 
 function Login() {
   //define state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [loading , setLoading] = useState(false)
 
   //define state validation
   const [validation, setValidation] = useState<{ [key: string]: string[] }>({});
@@ -31,7 +33,7 @@ function Login() {
   //function "loginHanlder"
   const loginHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+setLoading(true)
     //initialize formData
     const formData = new FormData();
 
@@ -81,13 +83,20 @@ function Login() {
         );
 
         //redirect to dashboard
-        Router.push("/dashboard");
-      })
+        const redirect = localStorage.getItem("redirect");
+        if (redirect) {
+          localStorage.removeItem("redirect");
+          Router.push(redirect);
+        } else {
+          Router.push("/");
+        }
+        })
       .catch((error) => {
         console.log(error.response.data);
         //assign error to state "validation"
         setValidation(error.response.data);
       });
+      setLoading(false)
   };
 
   //hook useEffect
@@ -161,18 +170,22 @@ function Login() {
               </div>
             </div>
             <div className="mt-10">
-              <button
-                onClick={(e) => loginHandler(e)}
-                className="bg-primary-green w-full  text-white py-4 rounded-lg font-medium  "
-              >
-                {" "}
-                Register
-              </button>
+              {loading ? (
+                <LoadingButton>Loading</LoadingButton>
+              ) : (
+                <button
+                  onClick={(e) => loginHandler(e)}
+                  className="bg-primary-green w-full  text-white py-4 rounded-lg font-medium  "
+                >
+                  {" "}
+                  Register
+                </button>
+              )}
             </div>
             <div className="text-center mt-2">
               <span className="text-gray-500 ">
                 {" "}
-               have account ?{" "}
+                have account ?{" "}
                 <Link href={"/login"}>
                   <span className="text-primary-green font-medium">
                     Login now{" "}
