@@ -6,7 +6,20 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  }
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)", // Izinkan semua permintaan
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*", // Izinkan semua asal
+          },
+        ],
+      },
+    ];
+  },
 };
 
-module.exports = nextConfig
+module.exports = nextConfig;
